@@ -15,18 +15,25 @@ void printinfo(const char *const instruction, std::size_t data[2], std::size_t i
 
     std::cout<<std::left<<std::setw(outputwidth)<<resources["results.header"];
     std::cout<<std::right<<std::setw(std::string(instruction).size())<<instruction<<std::endl;
+
     std::cout<<std::left<<std::setw(outputwidth)<<resources["results.instructions.count"];
     std::cout<<std::right<<std::setw(std::string(instruction).size())<<data[0]<<std::endl;
+
     std::cout<<std::left<<std::setw(outputwidth)<<resources["results.operations.count"];
     std::cout<<std::right<<std::setw(std::string(instruction).size())<<data[0]*instopratio<<std::endl;
+
     std::cout<<std::left<<std::setw(outputwidth)<<resources["results.time"];
     std::cout<<std::right<<std::setw(std::string(instruction).size())<<data[1]<<std::endl;
+
     std::cout<<std::left<<std::setw(outputwidth)<<resources["results.instructions.throughput"];
     std::cout<<std::right<<std::setw(std::string(instruction).size())<<((double)data[0])/data[1]<<std::endl;
+
     std::cout<<std::left<<std::setw(outputwidth)<<resources["results.operations.throughput"];
     std::cout<<std::right<<std::setw(std::string(instruction).size())<<((double)data[0]*instopratio)/data[1]<<std::endl;
+
     std::cout<<std::left<<std::setw(outputwidth)<<resources["results.instructions.nanosecondsper"];
     std::cout<<std::right<<std::setw(std::string(instruction).size())<<data[1]/((double)data[0])<<std::endl;
+    
     std::cout<<std::left<<std::setw(outputwidth)<<resources["results.operations.nanosecondsper"];
     std::cout<<std::right<<std::setw(std::string(instruction).size())<<data[1]/((double)data[0]*instopratio)<<std::endl;
     std::cout<<"\n";

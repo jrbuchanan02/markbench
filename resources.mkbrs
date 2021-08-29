@@ -1,0 +1,94 @@
+results.header
+Results for 
+results.instructions.count
+Instructions Performed:
+results.operations.count
+Operations Performed: 
+results.time
+Time taken (ns):
+results.instructions.throughput
+Instruction Throughput (GHz): 
+results.operations.throughput
+Operation (i.e., valid-result) Throughput (GHz): 
+results.instructions.nanosecondsper
+Nanoseconds per Instruction:
+results.operations.nanosecondsper
+Nanoseconds per Operation (i.e., valid-result): 
+running.test
+Running test 
+running.ellipses
+...
+running.of
+ of 
+information.finish
+Tests complete, processing data...
+test.clock.bigdata.conversion
+Converting values into GigaHertz...
+test.clock.bigdata.mean
+Finding mean of data...
+test.clock.bigdata.stddev
+Finding standard deviation of data...
+test.clock.bigdata.confidence.1
+Finding 95% confidence interval...
+test.clock.bigdata.confidence.2
+There is a 95% probability that your computer's clock lies within the next two values.
+test.clock.bigdata.report.1
+The clock speed of this computer seems to be between 
+test.clock.bigdata.report.2
+ and 
+test.clock.bigdata.report.3
+ GigaHertz.
+test.clock.bigdata.report.4
+Due to multiple factors, including current temperature, thread-scheduling, and what you
+test.clock.bigdata.report.5
+were doing on the computer during the test, these values may or may not lie within the 
+test.clock.bigdata.report.6
+listed specifications of your machine. 
+prompt.user.1
+Enter the number corresponding to the test you wish to run.
+prompt.user.2
+Enter one number beyond the highest in the list to exit.
+test.addregreg.name
+ADD RAX, RAX
+test.addregreg.title
+Adding two scalar registers
+test.addregavx.name
+VPADDQ YMM0, YMM0, YMM0
+test.addregavx.title
+Adding two vector registers of 64-bit integers
+test.maxaddinstructs.name
+ADD RAX, RAX ; VPADDQ YMM0, YMM0, YMM0
+test.maxaddinstructs.title
+Mixed adding of vector and scalar registers for 64-bit integers
+test.multithreadmaxaddinst.name
+The above, but across all threads
+test.multithreaxmaxaddinst.title
+Multi-threaded mixed adding of vector and scalar registers for 64-bit integers
+test.lshifts.name
+SAL RAX, 1
+test.lshifts.title
+Shifting left via a constant value
+test.rshifts.name
+SAR RAX, 1
+test.rshifts.title
+Shifting right via a constant value
+test.doubleaddregreg.name
+VADDPD YMM0, YMM0, YMM0
+test.doubleaddregreg.title
+Adding double-precision vectors of 4 members
+test.singleaddregreg.name
+VADDPS YMM0, YMM0, YMM0
+test.singleaddregreg.title
+Adding single-precision vectors of 8-members
+test.addandadd.name
+ADD RAX, RAX ; ADD RBX, RBX
+test.addandadd.title
+Adding 64-bit integers (2-dependency chains)
+test.fisr.name
+VRSQRTPS (SIMD FISR)
+test.fisr.title
+Fast Inverse Square Root (hardware implementation)
+test.clock.name
+CPU Clock Estimation
+test.clock.title
+CPU Clock Estimation

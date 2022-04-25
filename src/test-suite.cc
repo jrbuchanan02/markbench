@@ -22,35 +22,78 @@
 #endif
 
 #include <algorithm>
+#include <cstring>
 #include <iostream>
+#include <map>
 #include <random>
+#include <sstream>
+#include <thread>
 
 void null_test ( );
 void allocate_deallocate_test ( );
 void crypto_test ( );
 void forced_cache_miss_test ( );
+void window_create_destroy_test ( );
+void primes_sieve_test ( );
 
 namespace suites
 {
+    // the original tests.
+
+    // this test literally does nothing. It sort-of documents how quickly the
+    // system can perform the test just as the test itself. There is
+    // not-insignificant overhead in markbench -- and that's ok since markbench
+    // is a program and uses the standard library where possible to ensure that
+    // optimizing for markbench optimized for the most amount of programs
+    // possible.
     static individual_test const null_test = {
             "test.null",
             ::null_test,
     };
 
+    // this test measures the speed at which a (large) heap allocation can be
+    // made and immediately freed. Heap-management directly affects the
+    // performace of everything on the system perhaps more than most other
+    // common functions.
     static individual_test const allocate_deallocate_test = {
             "test.heap_thrash",
             ::allocate_deallocate_test,
     };
 
+    // this test specifically measures the speed at which this CPU can generate
+    // cryptographically secure random numbers. These are important for
+    // cyptography, which is something all computers need to do relatively
+    // quicky.
     static individual_test const crypto_test = {
             "test.crypto_safe_random",
             ::crypto_test,
     };
 
+    // your computer's CPU is perfectly capable of performing the operations in
+    // this function within a second. The RAM is not. That's what this test
+    // measures.
     static individual_test const forced_cache_miss_test = {
             "test.force_cache_miss",
             ::forced_cache_miss_test,
     };
+
+    // tests added for version 001
+
+    // window creation / destruction, which affects the speed of all
+    // applications.
+    static individual_test const window_create_destroy_test {
+            "test.window_create_destroy",
+            ::window_create_destroy_test,
+    };
+
+    // integer operations -- the most raw form of computational power. The
+    // amount of iterations through the prime sieve is not a good benchmark on
+    // its own, however.
+    static individual_test const primes_sieve_test {
+            "test.davidpl_primes_sieve",
+            ::primes_sieve_test,
+    };
+
 } // namespace suites
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -62,6 +105,18 @@ test_suite version_000 ( )
             suites::allocate_deallocate_test,
             suites::crypto_test,
             suites::forced_cache_miss_test,
+    };
+}
+
+test_suite version_001 ( )
+{
+    return test_suite {
+            suites::null_test,
+            suites::allocate_deallocate_test,
+            suites::crypto_test,
+            suites::forced_cache_miss_test,
+            suites::window_create_destroy_test,
+            suites::primes_sieve_test,
     };
 }
 
@@ -92,15 +147,8 @@ void allocate_deallocate_test ( )
         float confidence;
         float radius;
     };
-    try
-    {
-        point *million_points = new point [ std::mega::num ];
-        delete [] million_points;
-    } catch ( ... )
-    {
-        std::cout << "A HA!\n";
-        throw;
-    }
+    point *million_points = new point [ std::mega::num ];
+    delete [] million_points;
 }
 /**
  * @brief RAII system to get the preferred cryptographically secure random
@@ -189,3 +237,186 @@ void forced_cache_miss_test ( )
 
     std::sort ( numbers.begin ( ), numbers.end ( ) );
 }
+
+LRESULT CALLBACK WINAPI window_proc ( HWND   window,
+                                      UINT   msg,
+                                      WPARAM w_param,
+                                      LPARAM l_param )
+{
+    return DefWindowProc ( window, msg, w_param, l_param );
+}
+
+// creates a window and destroys it immediately after. This system should use
+// the lowest level operations possible. Rest in Peace, Desktop Window Manager.
+void window_create_destroy_test ( )
+{
+#if defined( WINDOWS )
+    std::wstringstream _class_name;
+    std::wstringstream _window_name;
+    _class_name << L"CLASS " << std::this_thread::get_id ( );
+    _window_name << L"Window " << std::this_thread::get_id ( );
+
+    std::wstring class_name  = _class_name.str ( );
+    std::wstring window_name = _window_name.str ( );
+
+    HINSTANCE  instance = GetModuleHandle ( nullptr );
+    WNDCLASSEX window_class;
+    window_class.cbSize        = sizeof ( window_class );
+    window_class.lpszClassName = class_name.c_str ( );
+    window_class.style         = CS_HREDRAW | CS_VREDRAW;
+    window_class.lpfnWndProc   = &window_proc;
+    window_class.hbrBackground = ( HBRUSH ) GetStockObject ( DC_BRUSH );
+    window_class.lpszMenuName  = L"MENU";
+    window_class.hCursor       = LoadCursor ( NULL, IDC_ARROW );
+    window_class.hIcon         = NULL;
+    window_class.hIconSm       = NULL;
+    window_class.hInstance     = instance;
+
+    RegisterClassEx ( &window_class );
+    HWND window;
+    window = CreateWindowEx ( WS_EX_OVERLAPPEDWINDOW,
+                              class_name.c_str ( ),
+                              window_name.c_str ( ),
+                              WS_OVERLAPPEDWINDOW,
+                              CW_USEDEFAULT,
+                              CW_USEDEFAULT,
+                              CW_USEDEFAULT,
+                              CW_USEDEFAULT,
+                              NULL,
+                              NULL,
+                              instance,
+                              nullptr );
+    ShowWindow ( window, SHOW_OPENWINDOW );
+    DestroyWindow ( window );
+    UnregisterClass ( window_class.lpszClassName, window_class.hInstance );
+#elif defined( LINUX )
+
+#elif defined( DARWIN )
+
+#endif
+}
+// credit: David Plummer.
+
+class bit_array
+{
+    std::uint32_t *array;
+    std::size_t    size;
+
+    inline static constexpr std::size_t array_size ( std::size_t const size )
+    {
+        return ( size >> 5 ) + ( ( size & 31 ) > 0 );
+    }
+
+    inline static constexpr std::size_t index ( std::size_t const n )
+    {
+        return ( n >> 5 );
+    }
+
+    inline static constexpr std::uint32_t get_subindex ( std::size_t const   n,
+                                                         std::uint32_t const d )
+    {
+        // I don't know why it's anding with 31 up there and modulo
+        // 32 down here, but that's what's in the Primes repository.
+        return d & std::uint32_t ( ( std::uint32_t ( 0x01 ) << ( n % 32 ) ) );
+    }
+
+    inline void set_false_subindex ( std::size_t n, std::uint32_t &d )
+    {
+        d &= ~std::uint32_t ( std::uint32_t ( 0x01 )
+                              << ( n % ( 8 * sizeof ( std::uint32_t ) ) ) );
+    }
+public:
+    explicit bit_array ( std::size_t size ) : size ( size )
+    {
+        array = new std::uint32_t [ array_size ( size ) ];
+        std::memset ( array, 0xFF, ( size >> 3 ) + ( ( size & 7 ) > 0 ) );
+    }
+
+    ~bit_array ( ) { delete [] array; }
+
+    bool get ( std::size_t n ) const
+    {
+        return get_subindex ( n, array [ index ( n ) ] );
+    }
+
+    static constexpr std::uint32_t rol ( std::uint32_t x, std::uint32_t n )
+    {
+        return ( x << n ) | ( x >> ( 32 - n ) );
+    }
+
+    void set_flags_false ( std::size_t n, std::size_t skip )
+    {
+        auto rolling_mask = ~std::uint32_t ( 1 << n % 32 );
+        auto roll_bits    = skip % 32;
+        while ( n < size )
+        {
+            array [ index ( n ) ] &= rolling_mask;
+            n += skip;
+            rolling_mask = rol ( rolling_mask, roll_bits );
+        }
+    }
+};
+
+class prime_sieve
+{
+private:
+    long                                                sieve_size = 0;
+    bit_array                                           bits;
+    static const std::map< long long const, int const > results;
+
+    bool validate_results ( )
+    {
+        return results.contains ( sieve_size )
+            && results.at ( sieve_size ) == count_primes ( );
+    }
+public:
+    prime_sieve ( long n ) : bits ( n ), sieve_size ( n ) { }
+    ~prime_sieve ( ) { }
+
+    void run_sieve ( )
+    {
+        int factor = 3;
+        int q      = ( int ) std::sqrt ( sieve_size );
+        while ( factor <= q )
+        {
+            for ( int num = factor; num < sieve_size; num += 2 )
+            {
+                if ( bits.get ( num ) )
+                {
+                    factor = num;
+                    break;
+                }
+            }
+            bits.set_flags_false ( factor * factor, factor << 1 );
+            factor += 2;
+        }
+    }
+
+    int count_primes ( )
+    {
+        int count = ( sieve_size >= 2 );
+        for ( int i = 3; i < sieve_size; i += 2 )
+        {
+            if ( bits.get ( i ) )
+            {
+                count++;
+            }
+        }
+        return count;
+    }
+};
+
+std::map< long long const, int const > const prime_sieve::results = {
+        { 10LL, 4 },
+        { 100LL, 25 },
+        { 1000LL, 168 },
+        { 10000LL, 1229 },
+        { 100000LL, 9592 },
+        { 1000000LL, 78498 },
+        { 10000000LL, 664579 },
+        { 100000000LL, 5761455 },
+        { 1000000000LL, 50845734 },
+        { 10000000000LL, 455052511 },
+};
+
+void primes_sieve_test ( ) { prime_sieve sieve ( 1000000L ); }

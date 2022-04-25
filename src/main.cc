@@ -26,31 +26,27 @@ markbench::thread_count hardware_threads ( )
     return std::thread::hardware_concurrency ( );
 }
 
-int main ( int const, char const *const *const )
+class test_runner
 {
-    using namespace markbench;
-    using duration                        = std::chrono::steady_clock::duration;
-    message_generator         *generator  = en_us_locale ( );
-    static thread_count const  one_thread = 1;
-    static thread_count const  all_thread = hardware_threads ( );
-    test_suite                 suite      = version_now ( );
-    std::vector< long double > one_thread_total;
-    std::vector< long double > all_thread_total;
+    using duration = std::chrono::steady_clock::duration;
+    message_generator                          *generator;
+    test_suite                                  suite;
+    std::vector< long double >                  one_thread_total;
+    std::vector< long double >                  all_thread_total;
+    inline static markbench::thread_count const one_thread = 1;
+    inline static markbench::thread_count const all_thread =
+            hardware_threads ( );
 
-    one_thread_total.push_back ( 0.0L );
-    for ( thread_count i = 0; i < all_thread + 1; i++ )
+    void accumulate_one_thread ( markbench::test_counters const &res,
+                                 duration const                 &d )
     {
-        all_thread_total.push_back ( 0.0L );
-    }
-
-    auto accumulate_one_thread = [ & ] ( test_counters const &res,
-                                         duration const      &d ) {
         one_thread_total.at ( 0 ) +=
                 ( ( long double ) res.at ( 0 ) ) / d.count ( );
-    };
+    }
 
-    auto accumulate_all_thread = [ & ] ( test_counters const &res,
-                                         duration const      &d ) {
+    void accumulate_all_thread ( markbench::test_counters const &res,
+                                 duration const                 &d )
+    {
         long double grand_total = 0;
         for ( std::size_t i = 0; i < res.size ( ); i++ )
         {
@@ -60,15 +56,41 @@ int main ( int const, char const *const *const )
         }
 
         all_thread_total.at ( all_thread ) += grand_total;
-    };
+    }
 
-    auto current_time = [] ( ) { return std::chrono::steady_clock::now ( ); };
+    auto current_time ( ) { return std::chrono::steady_clock::now ( ); }
+public:
+    test_runner ( message_generator *const &g, test_suite const &s )
+    {
+        generator = g;
+        suite     = s;
+        one_thread_total.push_back ( 0.0L );
+        all_thread_total.push_back ( 0.0L );
+        for ( markbench::thread_count i = 0; i < all_thread; i++ )
+        {
+            all_thread_total.push_back ( 0.0L );
+        }
+    }
 
+    ~test_runner ( )
+    {
+        delete generator;
+        // everything else default
+    }
+
+    void run_test ( );
+};
+
+void test_runner::run_test ( )
+{
+    using namespace markbench;
+    // generate an instance of the default random engine and give it a random
+    // seed
+    std::random_device         r;
+    std::default_random_engine engine { r ( ) };
     // now, if the test becomes significantly long, we want to account for the
     // system heating up. So, we will shuffle around the test.
-    std::shuffle ( suite.begin ( ),
-                   suite.end ( ),
-                   std::default_random_engine { } );
+    std::shuffle ( suite.begin ( ), suite.end ( ), engine );
 
     for ( auto &x : suite )
     {
@@ -76,11 +98,13 @@ int main ( int const, char const *const *const )
         auto now        = current_time ( );
         auto end        = current_time ( );
 
+        test         *runner = nullptr;
+        test_counters results;
         std::cout << generator->test_message ( id, one_thread );
-        test *runner = new test ( fn );
-        now          = current_time ( );
-        auto results = runner->run ( one_thread );
-        end          = current_time ( );
+        runner  = new test ( fn );
+        now     = current_time ( );
+        results = runner->run ( one_thread );
+        end     = current_time ( );
         accumulate_one_thread ( results, end - now );
         std::cout << generator->list_results ( results );
 
@@ -95,4 +119,33 @@ int main ( int const, char const *const *const )
 
     std::cout << generator->list_rhedstone_count ( one_thread_total,
                                                    all_thread_total );
+}
+
+int main ( int const argc, char const *const *const argv )
+{
+    using namespace markbench;
+
+    auto test_to_run = version_now;
+
+    if ( argc >= 2 )
+    {
+        if ( std::string ( argv [ 1 ] ) == "now" )
+        {
+            std::cout << "Set to run " << argv [ 1 ] << "\n";
+            test_to_run = version_now;
+        }
+        if ( std::string ( argv [ 1 ] ) == "000" )
+        {
+            std::cout << "Set to run " << argv [ 1 ] << "\n";
+            test_to_run = version_000;
+        }
+
+        if ( std::string ( argv [ 1 ] ) == "001" )
+        {
+            std::cout << "Set to run " << argv [ 1 ] << "\n";
+            test_to_run = version_001;
+        }
+    }
+
+    test_runner ( en_us_locale ( ), test_to_run ( ) ).run_test ( );
 }

@@ -26,3 +26,4 @@ using test_suite = std::vector< individual_test >;
 
 test_suite version_now ( );
 test_suite version_000 ( );
+test_suite version_001 ( );

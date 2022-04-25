@@ -1,7 +1,7 @@
 /**
- * @file test-functions.cc
+ * @file test-suite.cc
  * @author Joshua Buchanan (joshuarobertbuchanan@gmail.com)
- * @brief The functions for the tests.
+ * @brief Implements the test suite.
  * @version 1
  * @date 2022-04-25
  *
@@ -10,7 +10,7 @@
  *
  */
 
-#include "test-functions.hh"
+#include "test-suite.hh"
 
 #if defined( LINUX ) || defined( DARWIN )
 #    include <fstream>
@@ -30,40 +30,42 @@ void allocate_deallocate_test ( );
 void crypto_test ( );
 void forced_cache_miss_test ( );
 
-markbench::test_function functions [] = {
-        null_test,
-        allocate_deallocate_test,
-        crypto_test,
-        forced_cache_miss_test,
-};
-
-std::string test_names [] = {
-        "test.null",
-        "test.heap_thrash",
-        "test.crypto_safe_random",
-        "test.force_cache_miss",
-};
-
-std::vector< markbench::test_function > get_test_functions ( )
+namespace suites
 {
-    std::vector< markbench::test_function > temp;
-    for ( std::size_t i = 0; i < std::extent_v< decltype ( functions ) >; i++ )
-    {
-        temp.push_back ( functions [ i ] );
-    }
-    return temp;
+    static individual_test const null_test = {
+            "test.null",
+            ::null_test,
+    };
+
+    static individual_test const allocate_deallocate_test = {
+            "test.heap_thrash",
+            ::allocate_deallocate_test,
+    };
+
+    static individual_test const crypto_test = {
+            "test.crypto_safe_random",
+            ::crypto_test,
+    };
+
+    static individual_test const forced_cache_miss_test = {
+            "test.force_cache_miss",
+            ::forced_cache_miss_test,
+    };
+} // namespace suites
+
+////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////// tests /////////////////////////////////////
+test_suite version_000 ( )
+{
+    return test_suite {
+            suites::null_test,
+            suites::allocate_deallocate_test,
+            suites::crypto_test,
+            suites::forced_cache_miss_test,
+    };
 }
 
-std::vector< std::string > get_test_name_ids ( )
-{
-    std::vector< std::string > temp;
-    for ( std::size_t i = 0; i < std::extent_v< decltype ( test_names ) >; i++ )
-    {
-        temp.push_back ( test_names [ i ] );
-    }
-
-    return temp;
-}
+test_suite version_now ( ) { return version_000 ( ); }
 
 /**
  * @brief This test intentionally does nothing. It is meant to generate a

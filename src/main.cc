@@ -11,7 +11,7 @@
  */
 
 #include "messages.hh"
-#include "test-functions.hh"
+#include "test-suite.hh"
 #include "test.hh"
 
 #include <algorithm>
@@ -30,20 +30,12 @@ int main ( int const, char const *const *const )
 {
     using namespace markbench;
     using duration                        = std::chrono::steady_clock::duration;
-    message_generator          *generator = en_us_locale ( );
-    std::vector< test_id_pair > test_info;
-    static thread_count const   one_thread = 1;
-    static thread_count const   all_thread = hardware_threads ( );
-    auto const                 &fns        = get_test_functions ( );
-    auto const                 &ids        = get_test_name_ids ( );
-    std::vector< long double >  one_thread_total;
-    std::vector< long double >  all_thread_total;
-    std::size_t                 cnt = fns.size ( );
-
-    for ( std::size_t i = 0; i < cnt; i++ )
-    {
-        test_info.push_back ( test_id_pair ( fns.at ( i ), ids.at ( i ) ) );
-    }
+    message_generator         *generator  = en_us_locale ( );
+    static thread_count const  one_thread = 1;
+    static thread_count const  all_thread = hardware_threads ( );
+    test_suite                 suite      = version_now ( );
+    std::vector< long double > one_thread_total;
+    std::vector< long double > all_thread_total;
 
     one_thread_total.push_back ( 0.0L );
     for ( thread_count i = 0; i < all_thread + 1; i++ )
@@ -74,13 +66,13 @@ int main ( int const, char const *const *const )
 
     // now, if the test becomes significantly long, we want to account for the
     // system heating up. So, we will shuffle around the test.
-    std::shuffle ( test_info.begin ( ),
-                   test_info.end ( ),
+    std::shuffle ( suite.begin ( ),
+                   suite.end ( ),
                    std::default_random_engine { } );
 
-    for ( auto &x : test_info )
+    for ( auto &x : suite )
     {
-        auto [ fn, id ] = x;
+        auto [ id, fn ] = x;
         auto now        = current_time ( );
         auto end        = current_time ( );
 

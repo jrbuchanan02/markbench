@@ -1,7 +1,7 @@
 /**
- * @file test-functions.hh
+ * @file test-suite.hh
  * @author Joshua Buchanan (joshuarobertbuchanan@gmail.com)
- * @brief Declarations for the functions used in the various tests.
+ * @brief Suite of tests.
  * @version 1
  * @date 2022-04-25
  *
@@ -12,9 +12,17 @@
 #pragma once
 
 #include "test.hh"
+
 #include <string>
 #include <vector>
 
-std::vector< markbench::test_function > get_test_functions ( );
+struct individual_test
+{
+    std::string              name_id;
+    markbench::test_function function;
+};
 
-std::vector< std::string > get_test_name_ids ( );
+using test_suite = std::vector< individual_test >;
+
+test_suite version_now ( );
+test_suite version_000 ( );

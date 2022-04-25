@@ -1,18 +1,38 @@
 # markbench
- Markbench is a benchmarking software designed for x86-64. Markbench is terminal based, and seems capable of reporting near the theoretical speeds of the processor (on my machine, 5.3 GHz). I plan on adding features to markbench as a benchmarking tool. 
-## Compilation Instructions:
- 1. Clone / download the code on your local machine with g++ installed.
- 2. In the directory with `src/` run `g++ ./src/main.c++ -Ofast`. Markbench will be in the output file (either `a.exe` for Windows or `a.out` for Mac and Linux).
-## Current features:
- 1. Markbench reports the instruction and result throughput of the cpu over the ~5 second sampling period. For certain instructions, such as ADD RAX, RAX, this speed is known to be close enough to the maximum processor speed. 
- 2. Markbench uses its own resource file (the .mkbrs file) to store its resources. While limited, this format (delimited by newlines) works well enough for now (though it should probably be made more versatile in the future)
-## Current Issues:
- 1. Markbench assumes the presence of AVX instructions but does not require the ABI for AVX. In other words, Markbench should mysteriously crash when running the AVX-requiring tests on a machine that does not support AVX instructions.
- 2. Markbench's code is not as neat as I would like it to be (as in the code feels cluttered). (The solution is obviously to move the function-implementations into their own .c++ files, but refactoring is boring)
- 3. Markbench's implementations currently only support single instruction commands, however, I would prefer to also include some common pieces of code, including, but not limited to mergesort, std-sort, bubble sort, and pidgeonhole-sort.
- 4. The CPU Clock Estimate test and the `--clock` commandline switch both assume that the ALU is double-pumped. On (really old) machines where the ALU is **not** double-pumped, `--clock` and the CPU Clock Estimate test will report half the true value.
-## Wishlist:
- 1. (optionally) reporting benchmarks to some database so that processor speeds may be recorded. 
- 2. Adding more tests. At some point I would love to test all (non-system) instructions available on the machine and to test certain code implementations, such as creating and destroying a window or allocating and deallocating memory.
- 3. Adding additional languages and locales. Localization is not my C++ strong suit, but it does not seem so hard so far...
- 4. While there is already one commandline switch (`--clock`), I would like to add more of these and place them in a resource file.
+
+Markbench is a performance benchmarking tool designed to improve on other
+popular and successful benchmarks. Namely, the whetstone, dhrystone, and
+GeekBench benchmarks. Markbench records a score in rhedstones, a pun on
+whestone / dhrystone and a reference to MineCraft.
+
+## What is there to improve on those other benchmarks
+
+Markbench addresses these issues with the three benchmarks it seeks to improve
+upon.
+
+1. Whetstones strictly measure floating point operations. While FlOPS are
+critical to high performance computing, most operations on a modern computer
+use integers.
+
+2. Dhrystones, due to the age of the benchmark, have become optimized for.
+Moreover, many operations in the dhrystone benchmark focus more on string
+copying and comparison, which less reflects the needs of modern
+software (especially since these strings are aligned on machine-natural
+boundries nad of known length).
+
+3. GeekBench is a relative scale, meaning that GeekBench 4 and GeekBench 5
+scores do not allow a comparison between themselves.
+
+## What exactly is a rhedstone
+
+A rhedstone measures one iteration through any of the tests per nanosecond. That
+is, if your machine performs 500,000,000 iterations of test 1 in one second and
+250,000,000 iterations of test 2 in one second, and 250,000,000 iterations of
+test 3 in one second, then it is a (500,000,000 + 250,000,000 + 250,000,000) /
+1,000,000,000 = 1 rhedstone machine. Each machine has two rhedstone scores,
+one score measures single-threaded performance and the other score measures
+performance with all threads at once.
+
+Since this system means that adding tests breaks the comparison, Markbench
+will eventually allow for testing any test version.
+

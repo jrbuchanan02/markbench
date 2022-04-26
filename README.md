@@ -36,3 +36,39 @@ performance with all threads at once.
 Since this system means that adding tests breaks the comparison, Markbench
 will eventually allow for testing any test version.
 
+## Test Wishlist
+
+Here is a wishlist for the various tests I would like to add but I am not sure
+how exactly to implement:
+
+1. A version of the window-creation and destruction test that works on Linux
+and Mac OS, and, preferably, one that uses identical code on all operating
+systems.
+
+2. A test which runs Java Bytecode. Not necessarily Java code, but the bytecode
+used by the JRE. Many programs use this bytecode and this metric can be useful.
+
+3. A test which runs the Common Intermediate Language / Common Language Interface
+bytecode. Many programs (at least on Windows) use this bytecode and this
+metrix can be useful.
+
+4. Tests which rely on computational geometry. That is, tests of whether a line
+in 3D space passes through a triangle in 3D space. Almost all 3D engines heavily
+utilize any and all forms of computational geometry and these calculations
+constitute a not-insignificant part of the modern computing world.
+
+5. Tests which benchmark AES encryption / decrpytion speeds on more generic
+data. That is, randomly generated data.
+
+## Changes Wishlist
+
+Here is a wishlist of the various improvements on the benchmarking and scoring
+system that I would like to see.
+
+- Rewarding scores which are more similar throuhgout the test suite.
+- Accounting for some tests expecting a lower score than others. We expect the
+null test to score the highest and the cache-miss to score the lowest (as of
+the time of writing), but, both count the same in the final score. Taking less
+than around five seconds on the cache miss test for single threads and less than
+around ten seconds on the multithreaded cache miss test should provide a massive
+boost in score.

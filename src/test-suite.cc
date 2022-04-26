@@ -170,7 +170,7 @@ class rand_stream
 #endif
 
 #if defined( LINUX ) || defined( DARWIN )
-    std::ifstream random_device = std::ifstream ( random_file );
+    std::ifstream random = std::ifstream ( random_file );
 #else
 
     HMODULE bcrypt = NULL;
@@ -194,10 +194,7 @@ public:
                              std::size_t const   &count )
     {
 #if defined( LINUX ) || defined( DARWIN )
-        for ( std::size_t i = 0; i < count; i++ )
-        {
-            random_file >> start [ i ];
-        }
+        for ( std::size_t i = 0; i < count; i++ ) { random >> start [ i ]; }
 #else
         BCryptGenRandom ( NULL, start, count, BCRYPT_USE_SYSTEM_PREFERRED_RNG );
 #endif
@@ -238,6 +235,7 @@ void forced_cache_miss_test ( )
     std::sort ( numbers.begin ( ), numbers.end ( ) );
 }
 
+#if defined( WINDOWS )
 LRESULT CALLBACK WINAPI window_proc ( HWND   window,
                                       UINT   msg,
                                       WPARAM w_param,
@@ -245,12 +243,16 @@ LRESULT CALLBACK WINAPI window_proc ( HWND   window,
 {
     return DefWindowProc ( window, msg, w_param, l_param );
 }
+#endif
 
 // creates a window and destroys it immediately after. This system should use
 // the lowest level operations possible. Rest in Peace, Desktop Window Manager.
 void window_create_destroy_test ( )
 {
 #if defined( WINDOWS )
+    // window classes are thread-global, so we need to add the thread-id to the
+    // name of the window class to ensure that we don't frick ourselves up with
+    // multithreading shenanegans.
     std::wstringstream _class_name;
     std::wstringstream _window_name;
     _class_name << L"CLASS " << std::this_thread::get_id ( );
@@ -290,9 +292,9 @@ void window_create_destroy_test ( )
     DestroyWindow ( window );
     UnregisterClass ( window_class.lpszClassName, window_class.hInstance );
 #elif defined( LINUX )
-
+#    warning "This test is not implemented for linux yet."
 #elif defined( DARWIN )
-
+#    warning "This test is not implemented for Apple OSes yet."
 #endif
 }
 // credit: David Plummer.

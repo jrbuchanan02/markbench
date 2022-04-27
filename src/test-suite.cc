@@ -428,7 +428,7 @@ void __attribute__ ( ( optimize ( "O0" ) ) ) window_create_destroy_test ( )
     ShowWindow ( window, SHOW_OPENWINDOW );
     DestroyWindow ( window );
     UnregisterClass ( window_class.lpszClassName, window_class.hInstance );
-#elif defined( LINUX )
+#elif defined( LINUX ) || defined( DARWIN )
     static std::mutex one_at_a_time;
     GtkWidget        *window;
     {
@@ -441,8 +441,6 @@ void __attribute__ ( ( optimize ( "O0" ) ) ) window_create_destroy_test ( )
         gtk_widget_destroy ( window );
     }
     window = nullptr;
-#elif defined( DARWIN )
-#    warning "This test is not implemented for Apple OSes yet."
 #endif
 }
 // credit: David Plummer.

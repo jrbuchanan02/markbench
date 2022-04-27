@@ -33,6 +33,36 @@ public:
         } else if ( id == "test.force_cache_miss" )
         {
             result += "cache miss test";
+        } else if ( id == "test.window_create_destroy" )
+        {
+            result += "window creation / destruction test";
+        } else if ( id == "test.davidpl_primes_sieve" )
+        {
+            result += "prime sieve test";
+        } else if ( id == "test.joshuas_salt" )
+        {
+            result += "GCD of minimal and maximal element test";
+        } else if ( id == "test.naiive_isqrt" )
+        {
+            // a bit long.
+            result +=
+                    "Naiive implementation of inverse square root / vector "
+                    "normalization test";
+        } else if ( id == "test.matrix_rref_triple" )
+        {
+            result += "find the rref of a 256x256 matrix of "
+                    + std::to_string ( sizeof ( long double ) * 8 )
+                    + "-bit floating points test";
+        } else if ( id == "test.matrix_rref_double" )
+        {
+            result +=
+                    "find the rref of a 256x256 matrix of double-precision "
+                    "floating points test";
+        } else if ( id == "test.matrix_rref_single" )
+        {
+            result +=
+                    "find the rref of a matix of single-precision floating "
+                    "points test";
         } else
         {
             result += "!" + id + "! test";

@@ -46,7 +46,7 @@ class test_runner
         long double grand_total = 0;
         for ( std::size_t i = 0; i < c.size ( ); i++ )
         {
-            long value = c.at ( i );
+            long double value = c.at ( i );
             value /= d.count ( );
             grand_total += value;
             a.at ( i ) += value;

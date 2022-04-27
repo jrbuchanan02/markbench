@@ -21,10 +21,15 @@
 #    include "windows.h"
 #endif
 
+#if defined( LINUX )
+#    include "gtk/gtk.h"
+#endif
+
 #include <algorithm>
 #include <cstring>
 #include <iostream>
 #include <map>
+#include <mutex>
 #include <random>
 #include <sstream>
 #include <thread>
@@ -424,7 +429,18 @@ void __attribute__ ( ( optimize ( "O0" ) ) ) window_create_destroy_test ( )
     DestroyWindow ( window );
     UnregisterClass ( window_class.lpszClassName, window_class.hInstance );
 #elif defined( LINUX )
-#    warning "This test is not implemented for linux yet."
+    static std::mutex one_at_a_time;
+    GtkWidget        *window;
+    {
+        std::scoped_lock lock { one_at_a_time };
+        window = gtk_window_new ( GTK_WINDOW_TOPLEVEL );
+    }
+    // gtk_window_present ( window );
+    {
+        std::scoped_lock lock { one_at_a_time };
+        gtk_widget_destroy ( window );
+    }
+    window = nullptr;
 #elif defined( DARWIN )
 #    warning "This test is not implemented for Apple OSes yet."
 #endif
@@ -605,15 +621,15 @@ std::integral auto gcd ( std::integral auto lhs, std::integral auto rhs )
 }
 
 /**
- * @brief Finds the greatest common denominator between the minimal and 
- * maximal elements in an array. 
+ * @brief Finds the greatest common denominator between the minimal and
+ * maximal elements in an array.
  * @note Generates a random array of vectors where the array occupies almost
  * all of the level 1 cache expected on the machine. The reason that we choose
  * 7 pages (124 KiB) instead of 8 pages (128 KiB) is because we need to account
- * for the stack, which may be in a separate area of cache, but since all "units"
- * in the cache are 4096 bytes long, we need to make sure that we have as few
- * cache misses as possible. In other words, we want any performance off of 
- * "theoretical" to truly be the CPU's fault.
+ * for the stack, which may be in a separate area of cache, but since all
+ * "units" in the cache are 4096 bytes long, we need to make sure that we have
+ * as few cache misses as possible. In other words, we want any performance off
+ * of "theoretical" to truly be the CPU's fault.
  *
  */
 void salty_test ( )
@@ -655,12 +671,13 @@ void salty_test ( )
 }
 
 /**
- * @brief Normalizes a vector to what could be a point in 3D space or a direction
- * in 3D space. Normalization is critical for performing the cross-product as the
- * magnitude of the cross product is related to the magnitudes of the two input
- * vectors. Meaning that if we want to calculate the direction of a reflection
- * and we do not use normalized vectors, we may get an erroneous value.
- * 
+ * @brief Normalizes a vector to what could be a point in 3D space or a
+ * direction in 3D space. Normalization is critical for performing the
+ * cross-product as the magnitude of the cross product is related to the
+ * magnitudes of the two input vectors. Meaning that if we want to calculate the
+ * direction of a reflection and we do not use normalized vectors, we may get an
+ * erroneous value.
+ *
  */
 void isqrt_test ( )
 {
@@ -1063,7 +1080,7 @@ public:
 /**
  * @brief Calculates the rref form of a random matrix of size 256 by 256 where
  * each element is between the minimum and maximum signed 32-bit integer values.
- * @note Since long-double is often implemented in software, this test goes a 
+ * @note Since long-double is often implemented in software, this test goes a
  * bit beyond flops.
  */
 void random_software_matrix_rref_test ( )
@@ -1087,7 +1104,7 @@ void random_software_matrix_rref_test ( )
 /**
  * @brief Calculates the rref form of a random matrix of size 256 by 256 where
  * each element is between the minimum and maximum signed 32-bit integer values.
- * @note This test is almost pure flops on a modern machine, but it's not 
+ * @note This test is almost pure flops on a modern machine, but it's not
  * unreasonable for an older machine to need to implement double in software.
  */
 void random_hardware_matrix_rref_test ( )
@@ -1113,7 +1130,7 @@ void random_hardware_matrix_rref_test ( )
  * each element is between the minimum and maximum signed 32-bit integer values.
  * @note Notice that the range of integer is beyond the range of numbers where
  * float has a maximum error < 1. This is intended as I wanted to keep the
- * same range of values, even though these values are not as precise. An 
+ * same range of values, even though these values are not as precise. An
  * alternative would be to use the minimum and maximum values for a 23-bit
  * integer.
  * @note "gloves off" since countless machines implement a single precision

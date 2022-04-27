@@ -11,9 +11,9 @@
  */
 
 #include "messages.hh"
+#include "test-runner.hh"
 #include "test-suite.hh"
 #include "test-utils.hh"
-#include "test-runner.hh"
 #include "test.hh"
 
 #include <algorithm>
@@ -21,11 +21,17 @@
 #include <random>
 #include <string>
 
+#if defined( LINUX )
+#    include "gtk/gtk.h"
+#endif
+
 using test_id_pair = std::tuple< markbench::test_function, std::string >;
 
-
-int main ( int const argc, char const *const *const argv )
+int main ( int argc, char **argv )
 {
+#if defined( LINUX )
+    gtk_init ( &argc, &argv );
+#endif
     using namespace markbench;
 
     auto test_to_run = version_now;
